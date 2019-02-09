@@ -1,49 +1,51 @@
-#Organise imports
+# Organise imports
 import hashlib
-import easygui
-import collections
 
-class networkToolkitFunctions:
+## Global variables
+dict_FileHashed = {}
+l_DuplicateFiles = []
+msg_ErrorMessage = ""
 
-	#Global variables
-	dict_FileHashed = {["File Path" : "File Hash"]}
-	l_DuplicateFiles = []
-	msg_ErrorMessage = ""
+# Created by Adam Jacobs. 12/12/2018
+# Takes a file path as a string and returns the hash value of the file.
+def hashFile(filePath):
+    global dict_FileHashed
+
+    with open(filePath, 'rb') as fileName:
+        buffer = fileName.read()
+
+    strBuffer = str(buffer)
+    strBuffer = strBuffer.encode()
+    strBuffer = hashlib.md5(strBuffer)
+    strBuffer = strBuffer.digest()
 	
-    #Created by Adam Jacobs. 12/12/2018
-    #Takes a file path as a string and returns the hash value of the file.
-    def hashFile(filePath):
-        hashLib = hashlib.md5()
+    return str(strBuffer)
 
-        with open(fileName, 'rb') as filePath:
-            buffer = filePath.read();
-            hash.update(buffer)
+# Created by Adam Jacobs. 14/12/2018
+# Takes a file path as a parameter and adds the hash value to the global list l_FileHashes
+def recordFileHash(par_CurrentFile):
+    global msg_ErrorMessage
+    global dict_FileHashed
 
-        return hashLib.hexdigest()
+    try:
+    	dict_FileHashed.update({par_CurrentFile:hashFile(par_CurrentFile)})
+    	dict_FileHashed[par_CurrentFile] = hashFile(par_CurrentFile)
+    	msg_ErrorMessage = ""
+    except:
+        #msg_ErrorMessage = "Unable to compare file path " + par_CurrentFile
 
-    #Created by Adam Jacobs. 14/12/2018
-	#Takes a file path as a parameter and adds the hash value to the global list l_FileHashes
-    def recordFileHash(par_CurrentFile):
-		global l_FileHashes
-		global msg_ErrorMessage
-	
-		try:
-			l_FileHashes.append(hashFile(par_CurrentFile))
-			dict_FileHashed[par_CurrentFile] = hashFile(par_CurrentFile)
-		except:
-			msg_ErrorMessage = "Unable to compare file path " + par_CurrentFile
-		
-	#Created by Adam Jacobs. 14/12/2018
-	#Detect duplicates from the dict_FileHashed dictionary and add the duplicates to the l_DuplicateFiles list object.
-	def detectDuplicates():
-		global l_DuplicateFiles
-		
-		#Get the values from the dictionary.
-		fileValues = dict_FileHashed.values()
-		
-		#Get the files from the dictionary where the file hash value exists more than once.
-		for fileName, fileHashValue in dict_FileHashed.items():
-			if fileValues.count(fileHashValue) > 1:
-				l_DuplicateFiles.append(fileName)
-				
-	
+# Created by Adam Jacobs. 14/12/2018
+# Detect duplicates from the dict_FileHashed dictionary and add the duplicates to the l_DuplicateFiles list object.
+def detectDuplicates():
+    global l_DuplicateFiles
+
+    #Create a duplicate dictionary
+    dict_FileDuplicate = dict_FileHashed
+
+    # Get the files from the dictionary where the file hash value exists more than once.
+    for fileName, fileHashValue in dict_FileHashed.items():
+        for fileNameDupe, fileHashDupe in dict_FileDuplicate.items():
+            if fileHashValue == fileHashDupe and fileName != fileNameDupe:
+                l_DuplicateFiles.append(fileName + " is a duplicate of " + fileNameDupe)
+
+
