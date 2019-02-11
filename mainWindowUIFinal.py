@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-
 # Form implementation generated from reading ui file 'MainWindowUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
 # WARNING! All changes made in this file will be lost!
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_mainWindow(object):
+
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
         mainWindow.resize(458, 397)
@@ -103,7 +103,6 @@ class Ui_mainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
-
         self.retranslateUi(mainWindow)
         self.tabSelector.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
@@ -126,4 +125,3 @@ class Ui_mainWindow(object):
         self.actionSave_Configuration.setText(_translate("mainWindow", "Save Configuration"))
         self.actionExit.setText(_translate("mainWindow", "Exit"))
         self.actionView_Current_Users_0_online.setText(_translate("mainWindow", "View Current Users (0 online)"))
-
