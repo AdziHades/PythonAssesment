@@ -1,5 +1,7 @@
 # Organise imports
 import hashlib
+from platform import system
+from subprocess import call
 
 ## Global variables
 dict_FileHashed = {}
@@ -18,7 +20,8 @@ def hashFile(filePath):
     strBuffer = strBuffer.encode()
     strBuffer = hashlib.md5(strBuffer)
     strBuffer = strBuffer.digest()
-	
+
+    print("Buffer text: " + str(filePath) + ": " + str(strBuffer))
     return str(strBuffer)
 
 # Created by Adam Jacobs. 14/12/2018
@@ -27,11 +30,11 @@ def recordFileHash(par_CurrentFile):
     global msg_ErrorMessage
     global dict_FileHashed
 
-    try:
-    	dict_FileHashed.update({par_CurrentFile:hashFile(par_CurrentFile)})
-    	dict_FileHashed[par_CurrentFile] = hashFile(par_CurrentFile)
-    	msg_ErrorMessage = ""
-    except:
+    #try:
+    dict_FileHashed.update({par_CurrentFile:hashFile(par_CurrentFile)})
+    dict_FileHashed[par_CurrentFile] = hashFile(par_CurrentFile)
+    msg_ErrorMessage = ""
+    #except:
         #msg_ErrorMessage = "Unable to compare file path " + par_CurrentFile
 
 # Created by Adam Jacobs. 14/12/2018
@@ -42,10 +45,18 @@ def detectDuplicates():
     #Create a duplicate dictionary
     dict_FileDuplicate = dict_FileHashed
 
+    print(dict_FileHashed, dict_FileDuplicate, sep="\n")
+
     # Get the files from the dictionary where the file hash value exists more than once.
     for fileName, fileHashValue in dict_FileHashed.items():
         for fileNameDupe, fileHashDupe in dict_FileDuplicate.items():
             if fileHashValue == fileHashDupe and fileName != fileNameDupe:
                 l_DuplicateFiles.append(fileName + " is a duplicate of " + fileNameDupe)
 
+def pingServer(serverHost):
+    # Ping the server. This function is capable of handling both windows and unix systems
+    param = '-n' if system().lower() == 'windows' else '-c'
+    command = ['ping', param, '1', serverHost]
+
+    return call(command)
 
