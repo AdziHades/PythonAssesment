@@ -60,3 +60,26 @@ def pingServer(serverHost):
 
     return call(command)
 
+def checkFile(self):
+    textSearchString = ui.textbox.text
+    fileToSearch = self.ui.txtDirector.text
+
+#Get the text to search for
+for files in os.listdir(fileToSearch):
+#Read Text and compare
+    readText = fileToSearch.read()
+if str(textSearchString) == str(fileToSearch):
+    print "Match Found"
+else:
+    print "No Match Found"
+
+
+
+
+
+#Loop through each directory
+         #Loop through each file
+                #Check if file contains the text
+                #If yes, add it to a list
+
+#Return the list
