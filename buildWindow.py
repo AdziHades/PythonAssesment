@@ -9,7 +9,9 @@ import datetime
 # Default variable parameters. These are used to allow main thread GUI updates from
 # worker processes
 monitorServer = False;
+searchFiles = False;
 serverToMonitor = ""
+searchText = ""
 mainThreadUI = ""
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,31 +33,52 @@ class MainWindow(QtWidgets.QMainWindow):
         if mainThreadUI == "":
             mainThreadUI = self
 
+        # First update of the time upon load
+        self.ui.label.setText(datetime.datetime.now().strftime('%H:%M'))
+
+        # Define the update time thread and start it.
+        self.UpdateTimeThread = UpdateTime()
+        self.UpdateTimeThread.start()
+
+    def close(self):
+        self.UpdateTimeThread.stop()
+        self.SearchFilesThread.stop()
+        self.MonitorServerThread.stop()
+
+    def updateTimeGUI(self):
+        # Update the time on the top right of the GUI
+        mainThreadUI.ui.label.setText(datetime.datetime.now().strftime('%H:%M'))
+
     def updateServerMonitorText(self, boolActive):
         # Main thread handler, accessed from the MonitorServer class thread
         if boolActive:
-            print("Server is online")
             mainThreadUI.ui.txtServerMonitorResults.append(str(datetime.datetime.now()) + "     Server is online")
         else:
-            print("Server is offline")
             mainThreadUI.ui.txtServerMonitorResults.append(str(datetime.datetime.now()) + "     Server is offline")
 
         # Keep cursor at the bottom of the textbox.
         mainThreadUI.ui.txtServerMonitorResults.moveCursor(QtGui.QTextCursor.End)
 
-    def checkServer(self):
-        global monitorServer
-        print("Checking server: " + str(monitorServer))
+    def updateFileSearchResults(self, txtResults):
+        global searchFiles
 
-        # Use while true to keep monitoring the monitorServer boolean for change
-        # while True:
-            # while monitorServer:
-                # if networkToolkitFunctions.pingServer(self.ui.txtServerToMonitor.text()) == 0:
-                    # self.ui.txtServerMonitorResults.append("Server is online")
-                # else:
-                    # self.ui.txtServerMonitorResults.append("Server is offline")
+        # Main thread handler, access by the SearchFile class thread
+        textResultsMainThread = txtResults.split("\\r\\n")
+        textResultsFormatted = ""
 
-                # time.sleep(self.interval)
+        iterationCounter = 0
+        while(iterationCounter < len(textResultsMainThread)):
+            textResultsFormatted += textResultsMainThread[iterationCounter] + "\n"
+            iterationCounter += 1
+
+        mainThreadUI.ui.btnFindText.setText("Search Files")
+
+        # Only populate the text file if the search files boolean is true.
+        if searchFiles:
+            mainThreadUI.ui.txtFindResults.append(textResultsFormatted)
+
+        searchFiles = False
+
 
     # Server monitor clicked event
     def btnMonitorServerClicked(self):
@@ -80,7 +103,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # Find text clicked event
     def btnFindTextClicked(self):
-        pass
+        global searchFiles
+        global searchText
+
+        searchText = self.ui.txtTextToFind.text()
+
+        if searchFiles:
+            searchFiles = False
+            self.ui.btnFindText.setText("Search Files")
+            self.ui.txtFindResults.setText("Cancelled")
+        else:
+            searchFiles = True
+            self.ui.txtFindResults.setText("")
+            self.ui.btnFindText.setText("Stop Search")
+
+        self.SearchFilesThread = FileSearch()
+        self.SearchFilesThread.start()
 
     # Clean directory button clicked
     def btnCleanDirectoryClicked(self):
@@ -154,6 +192,45 @@ class MonitorServer(QtCore.QThread):
                 # Sleep for 1 second and re-run.
                 time.sleep(1)
 
+
+class FileSearch(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self, mainThreadUI)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        global searchFiles
+
+        # Create an instanced version of the MainWindow class to use in this class
+        mainWindow = MainWindow()
+
+        # Use while true to keep monitoring the searchFiles boolean for change
+        while True:
+            # Check if the searchFiles boolean is true.
+            # This is controlled by the Search Files button on the GUI and is set to False at the end of the function
+            # inside the updateFileSearchResults function
+            while searchFiles:
+                stringFunction = networkToolkitFunctions.checkFile(searchText)
+                mainWindow.updateFileSearchResults(stringFunction)
+
+
+class UpdateTime(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self, mainThreadUI)
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        # Create an instanced version of the MainWindow class to use in this class
+        mainWindow = MainWindow()
+
+        # Use while true to keep updating the time
+        while True:
+            mainWindow.updateTimeGUI()
+            time.sleep(1)
 
 def main():
     app = QtWidgets.QApplication([])
