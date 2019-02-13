@@ -2,6 +2,8 @@
 import hashlib
 from platform import system
 from subprocess import call
+from pathlib import Path
+import subprocess
 
 ## Global variables
 dict_FileHashed = {}
@@ -21,7 +23,6 @@ def hashFile(filePath):
     strBuffer = hashlib.md5(strBuffer)
     strBuffer = strBuffer.digest()
 
-    print("Buffer text: " + str(filePath) + ": " + str(strBuffer))
     return str(strBuffer)
 
 # Created by Adam Jacobs. 14/12/2018
@@ -45,41 +46,36 @@ def detectDuplicates():
     #Create a duplicate dictionary
     dict_FileDuplicate = dict_FileHashed
 
-    print(dict_FileHashed, dict_FileDuplicate, sep="\n")
-
     # Get the files from the dictionary where the file hash value exists more than once.
     for fileName, fileHashValue in dict_FileHashed.items():
         for fileNameDupe, fileHashDupe in dict_FileDuplicate.items():
             if fileHashValue == fileHashDupe and fileName != fileNameDupe:
                 l_DuplicateFiles.append(fileName + " is a duplicate of " + fileNameDupe)
 
+# Created by Adam Jacobs. 05/01/2018
+# Ping the server requested and return the command (0 if online)
 def pingServer(serverHost):
     # Ping the server. This function is capable of handling both windows and unix systems
+
+    # If the system is a window system then use -n, else use -c.
+    # This is the count of how many requests to send, This will be 1 in the command.
     param = '-n' if system().lower() == 'windows' else '-c'
+
+    # Generate the command field using the param generated above
     command = ['ping', param, '1', serverHost]
 
     return call(command)
 
-def checkFile(self):
-    textSearchString = ui.textbox.text
-    fileToSearch = self.ui.txtDirector.text
 
-#Get the text to search for
-for files in os.listdir(fileToSearch):
-#Read Text and compare
-    readText = fileToSearch.read()
-if str(textSearchString) == str(fileToSearch):
-    print "Match Found"
-else:
-    print "No Match Found"
+# Created by Will Brown. 14/1/2018
+# Detect duplicates from the dict_FileHashed dictionary and add the duplicates to the l_DuplicateFiles list object.
+def checkFile(txtToSearch):
+    # Generate a command to find the string needed.
+    windowsSearch = "findStr /s /i /n /m /M /p /P /C:" + txtToSearch + " /D:" + str(Path.home()).replace("/", "//") + " *"
+    unixSearch = "grep -r --include='*.*' " + txtToSearch
 
+    # Use either the windowsSearch or the unixSearch command string
+    command = windowsSearch if system().lower() == 'windows' else unixSearch
 
-
-
-
-#Loop through each directory
-         #Loop through each file
-                #Check if file contains the text
-                #If yes, add it to a list
-
-#Return the list
+    output = subprocess.Popen(command, stdout=subprocess.PIPE)
+    return str(output.communicate())
