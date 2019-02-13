@@ -40,10 +40,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.UpdateTimeThread = UpdateTime()
         self.UpdateTimeThread.start()
 
+        # Define the worker threads
+        self.MonitorServerThread = MonitorServer()
+        self.SearchFilesThread = FileSearch()
+
     def close(self):
-        self.UpdateTimeThread.stop()
-        self.SearchFilesThread.stop()
-        self.MonitorServerThread.stop()
+        self.UpdateTimeThread.terminate()
+        self.SearchFilesThread.terminate()
+        self.MonitorServerThread.terminate()
 
     def updateTimeGUI(self):
         # Update the time on the top right of the GUI
@@ -92,14 +96,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if monitorServer:
             monitorServer = False
             self.ui.btnMonitorServer.setText("Monitor Server")
+            self.MonitorServerThread.terminate()
         else:
             monitorServer = True
             self.ui.txtServerMonitorResults.setText("")
             self.ui.btnMonitorServer.setText("Stop Monitoring")
-
-        # Define the worker thread and start it
-        self.MonitorServerThread = MonitorServer()
-        self.MonitorServerThread.start()
+            self.MonitorServerThread.start()
 
     # Find text clicked event
     def btnFindTextClicked(self):
@@ -112,13 +114,12 @@ class MainWindow(QtWidgets.QMainWindow):
             searchFiles = False
             self.ui.btnFindText.setText("Search Files")
             self.ui.txtFindResults.setText("Cancelled")
+            self.SearchFilesThread.terminate()
         else:
             searchFiles = True
             self.ui.txtFindResults.setText("")
             self.ui.btnFindText.setText("Stop Search")
-
-        self.SearchFilesThread = FileSearch()
-        self.SearchFilesThread.start()
+            self.SearchFilesThread.start()
 
     # Clean directory button clicked
     def btnCleanDirectoryClicked(self):
